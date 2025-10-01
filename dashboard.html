@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Together - 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* 상단 네비게이션 바 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .settings-icon {
+            width: 24px;
+            height: 24px;
+            background: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        /* 누적 통계 (최소화) */
+        .summary-stats {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .summary-item {
+            flex: 1;
+        }
+        
+        .summary-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 4px;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 기록 테이블 */
+        .records-section {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .section-header {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table-header {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .table-header th {
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .table-header th:last-child {
+            border-right: none;
+        }
+        
+        .table-row {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        .table-row:hover {
+            background: #f8f9fa;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-cell {
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 14px;
+            border-right: 1px solid #f0f0f0;
+        }
+        
+        .table-cell:last-child {
+            border-right: none;
+        }
+        
+        .date-cell {
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+        }
+        
+        .progress-cell {
+            width: 80px;
+            padding: 12px 4px;
+        }
+        
+        .mini-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        
+        .mini-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .mini-progress-fill.high {
+            background: linear-gradient(90deg, #7ED321, #50C878);
+        }
+        
+        .mini-progress-fill.medium {
+            background: linear-gradient(90deg, #FF9500, #FFB84D);
+        }
+        
+        .mini-progress-fill.low {
+            background: linear-gradient(90deg, #FF6B6B, #FF8E8E);
+        }
+        
+        .progress-text {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .amount-cell {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .achievement-cell {
+            font-size: 16px;
+        }
+        
+        .achievement-success {
+            color: #7ED321;
+        }
+        
+        .achievement-fail {
+            color: #FF6B6B;
+        }
+        
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            padding: 8px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #4A90E2;
+        }
+        
+        .nav-item:hover {
+            color: #4A90E2;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+        }
+        
+        .wireframe-note {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #FF9500;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* 로딩 상태 */
+        .loading-row {
+            background: #f8f9fa;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wireframe-note">LOW-FI WIREFRAME</div>
+    
+    <div class="container">
+        <!-- 상단 네비게이션 바 -->
+        <div class="top-nav">
+            <div class="page-title">대시보드</div>
+            <div class="settings-icon" onclick="alert('설정 화면으로 이동')">⚙️</div>
+        </div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 누적 통계 (최소화) -->
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <div class="summary-value">7일</div>
+                    <div class="summary-label">연속 달성</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">1.6L</div>
+                    <div class="summary-label">평균 섭취</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">85%</div>
+                    <div class="summary-label">달성률</div>
+                </div>
+            </div>
+            
+            <!-- 기록 테이블 -->
+            <div class="records-section">
+                <div class="section-header">
+                    <div class="section-title">일별 물 섭취 기록</div>
+                </div>
+                
+                <table class="records-table">
+                    <thead class="table-header">
+                        <tr>
+                            <th style="width: 25%;">날짜</th>
+                            <th style="width: 30%;">시각화</th>
+                            <th style="width: 25%;">섭취량</th>
+                            <th style="width: 20%;">달성</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/24<br><span style="font-size: 11px; color: #999;">오늘</span></td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill medium" style="width: 65%;"></div>
+                                </div>
+                                <div class="progress-text">65%</div>
+                            </td>
+                            <td class="table-cell amount-cell">1,300ml</td>
+                            <td class="table-cell achievement-cell achievement-fail">❌</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/23<br><span style="font-size: 11px; color: #999;">어제</span></td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill high" style="width: 100%;"></div>
+                                </div>
+                                <div class="progress-text">100%</div>
+                            </td>
+                            <td class="table-cell amount-cell">2,000ml</td>
+                            <td class="table-cell achievement-cell achievement-success">✅</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/22</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill high" style="width: 90%;"></div>
+                                </div>
+                                <div class="progress-text">90%</div>
+                            </td>
+                            <td class="table-cell amount-cell">1,800ml</td>
+                            <td class="table-cell achievement-cell achievement-success">✅</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/21</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill low" style="width: 40%;"></div>
+                                </div>
+                                <div class="progress-text">40%</div>
+                            </td>
+                            <td class="table-cell amount-cell">800ml</td>
+                            <td class="table-cell achievement-cell achievement-fail">❌</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/20</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill high" style="width: 100%;"></div>
+                                </div>
+                                <div class="progress-text">100%</div>
+                            </td>
+                            <td class="table-cell amount-cell">2,100ml</td>
+                            <td class="table-cell achievement-cell achievement-success">✅</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/19</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill medium" style="width: 75%;"></div>
+                                </div>
+                                <div class="progress-text">75%</div>
+                            </td>
+                            <td class="table-cell amount-cell">1,500ml</td>
+                            <td class="table-cell achievement-cell achievement-success">✅</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/18</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill high" style="width: 95%;"></div>
+                                </div>
+                                <div class="progress-text">95%</div>
+                            </td>
+                            <td class="table-cell amount-cell">1,900ml</td>
+                            <td class="table-cell achievement-cell achievement-success">✅</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="table-cell date-cell">09/17</td>
+                            <td class="table-cell progress-cell">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill medium" style="width: 60%;"></div>
+                                </div>
+                                <div class="progress-text">60%</div>
+                            </td>
+                            <td class="table-cell amount-cell">1,200ml</td>
+                            <td class="table-cell achievement-cell achievement-fail">❌</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 하단 네비게이션 -->
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="alert('홈 화면으로 이동')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">홈</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">대시보드</div>
+            </div>
+            <div class="nav-item" onclick="alert('친구&랭킹 화면으로 이동')">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">친구랭킹</div>
+            </div>
+            <div class="nav-item" onclick="alert('설정 화면으로 이동')">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">설정</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.table-row');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+        
+        // 테이블 행 클릭 시 상세 정보 (예시)
+        document.querySelectorAll('.table-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const date = this.querySelector('.date-cell').textContent.trim().split('\n')[0];
+                const amount = this.querySelector('.amount-cell').textContent;
+                alert(`${date} 상세 정보:\n섭취량: ${amount}\n\n(상세 기록 화면으로 이동 예정)`);
+            });
+        });
+        
+        // 통계 데이터 업데이트 (예시)
+        function updateStats() {
+            const rows = document.querySelectorAll('.table-row');
+            let totalDays = rows.length;
+            let achievedDays = 0;
+            let totalAmount = 0;
+            
+            rows.forEach(row => {
+                const amount = parseInt(row.querySelector('.amount-cell').textContent);
+                const achieved = row.querySelector('.achievement-success');
+                
+                totalAmount += amount;
+                if (achieved) achievedDays++;
+            });
+            
+            const avgAmount = (totalAmount / totalDays / 1000).toFixed(1);
+            const achievementRate = Math.round((achievedDays / totalDays) * 100);
+            
+            document.querySelector('.summary-stats .summary-item:nth-child(2) .summary-value').textContent = avgAmount + 'L';
+            document.querySelector('.summary-stats .summary-item:nth-child(3) .summary-value').textContent = achievementRate + '%';
+        }
+        
+        // 초기 통계 업데이트
+        updateStats();
+    </script>
+</body>
+</html>

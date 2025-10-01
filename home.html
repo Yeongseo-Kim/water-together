@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Together - 홈 화면</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* 상단 네비게이션 바 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .nickname {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .progress-section {
+            flex: 1;
+            margin: 0 20px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #5B9BD5);
+            border-radius: 4px;
+            width: 65%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .settings-icon {
+            width: 24px;
+            height: 24px;
+            background: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        /* 환영 메시지 */
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .welcome-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .motivational-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 중간 영역 - 식물과 도감 */
+        .plant-section {
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px dashed #e0e0e0;
+        }
+        
+        .plant-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .plant-pot {
+            width: 120px;
+            height: 100px;
+            background: #8B4513;
+            border-radius: 8px 8px 60px 60px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 20px;
+        }
+        
+        .plant {
+            font-size: 36px;
+            animation: grow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes grow {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .plant-info {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .plant-level {
+            font-weight: 600;
+            color: #4A90E2;
+        }
+        
+        /* 도감 아이콘 */
+        .encyclopedia-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: #FF9500;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .encyclopedia-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 인벤토리 영역 */
+        .inventory-section {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            width: 80px;
+        }
+        
+        .inventory-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .seed-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .seed-slot {
+            width: 32px;
+            height: 32px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .seed-slot.has-seed {
+            background: #7ED321;
+            border-color: #7ED321;
+            color: white;
+        }
+        
+        .plant-btn {
+            width: 100%;
+            height: 32px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .plant-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* 물 기록 버튼들 */
+        .water-record-section {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .water-record-btn {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4A90E2, #5B9BD5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .water-record-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+        }
+        
+        .water-record-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-label {
+            font-size: 10px;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            padding: 8px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #4A90E2;
+        }
+        
+        .nav-item:hover {
+            color: #4A90E2;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+        }
+        
+        /* 팝업 */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .popup.active {
+            display: flex;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px;
+            text-align: center;
+            max-width: 280px;
+        }
+        
+        .popup-plant {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .popup-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .popup-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .popup-close {
+            width: 100%;
+            height: 44px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .wireframe-note {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #FF9500;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        /* 통계 정보 */
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="wireframe-note">LOW-FI WIREFRAME</div>
+    
+    <div class="container">
+        <!-- 상단 네비게이션 바 -->
+        <div class="top-nav">
+            <div class="nickname">물마시는사람</div>
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text">1.3L / 2.0L (65%)</div>
+            </div>
+            <div class="settings-icon" onclick="alert('설정 화면으로 이동')">⚙️</div>
+        </div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 환영 메시지 -->
+            <div class="welcome-message">
+                <div class="welcome-text">좋은 하루예요! 🌱</div>
+                <div class="motivational-text">오늘 목표까지 700ml 남았어요</div>
+            </div>
+            
+
+            
+            <!-- 식물 영역 -->
+            <div class="plant-section">
+                <!-- 인벤토리 -->
+                <div class="inventory-section">
+                    <div class="inventory-title">씨앗</div>
+                    <div class="seed-slots">
+                        <div class="seed-slot has-seed">🌰</div>
+                        <div class="seed-slot has-seed">🌰</div>
+                        <div class="seed-slot">+</div>
+                    </div>
+                    <button class="plant-btn" onclick="plantSeed()">심기</button>
+                </div>
+                
+                <!-- 도감 아이콘 -->
+                <div class="encyclopedia-icon" onclick="showEncyclopedia()">📖</div>
+                
+                <!-- 식물 화분 -->
+                <div class="plant-container">
+                    <div class="plant-pot">
+                        <div class="plant">🌱</div>
+                    </div>
+                    <div class="plant-info">
+                        <div>물을 더 줘서 키워보세요! 🌱</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 물 기록 버튼들 -->
+        <div class="water-record-section">
+            <button class="water-record-btn" onclick="recordWater(50)">
+                💧
+                <div class="btn-label">한모금</div>
+            </button>
+            <button class="water-record-btn" onclick="recordWater(100)">
+                🥤
+                <div class="btn-label">반컵</div>
+            </button>
+            <button class="water-record-btn" onclick="recordWater(200)">
+                🥛
+                <div class="btn-label">한컵</div>
+            </button>
+        </div>
+        
+        <!-- 하단 네비게이션 -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">홈</div>
+            </div>
+            <div class="nav-item" onclick="alert('대시보드 화면으로 이동')">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">대시보드</div>
+            </div>
+            <div class="nav-item" onclick="alert('친구&랭킹 화면으로 이동')">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">친구랭킹</div>
+            </div>
+            <div class="nav-item" onclick="alert('설정 화면으로 이동')">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">설정</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 도감 팝업 -->
+    <div class="popup" id="encyclopedia-popup">
+        <div class="popup-content">
+            <div class="popup-plant">🌻</div>
+            <div class="popup-title">해바라기</div>
+            <div class="popup-description">
+                밝고 화사한 해바라기입니다.<br>
+                충분한 물과 사랑으로 키웠어요!
+            </div>
+            <button class="popup-close" onclick="closePopup()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // 물 기록 함수
+        function recordWater(amount = 100) {
+            const progressFill = document.querySelector('.progress-fill');
+            const progressText = document.querySelector('.progress-text');
+            
+            // 현재 진행률 계산 (65% = 1.3L 기준)
+            const currentAmount = parseFloat(progressText.textContent.match(/[\d.]+/)[0]);
+            const targetAmount = 2.0;
+            
+            const newAmount = Math.min(currentAmount + (amount / 1000), targetAmount);
+            const newWidth = (newAmount / targetAmount) * 100;
+            
+            progressFill.style.width = newWidth + '%';
+            progressText.textContent = `${newAmount.toFixed(1)}L / ${targetAmount}L (${Math.round(newWidth)}%)`;
+            
+            // 식물 성장 애니메이션
+            const plant = document.querySelector('.plant');
+            plant.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                plant.style.transform = 'scale(1)';
+            }, 300);
+            
+            // 목표 달성 체크
+            if (newAmount >= targetAmount) {
+                setTimeout(() => {
+                    alert('🎉 오늘 목표 달성! 식물이 성장했어요!');
+                }, 500);
+            }
+        }
+        
+        // 씨앗 심기 함수
+        function plantSeed() {
+            const hasSeeds = document.querySelectorAll('.seed-slot.has-seed').length;
+            if (hasSeeds > 0) {
+                alert('씨앗을 심었습니다! 🌱\n물을 충분히 줘서 키워보세요.');
+                
+                // 첫 번째 씨앗 제거
+                const firstSeed = document.querySelector('.seed-slot.has-seed');
+                if (firstSeed) {
+                    firstSeed.classList.remove('has-seed');
+                    firstSeed.textContent = '+';
+                }
+            } else {
+                alert('씨앗이 부족해요! 친구를 초대하거나 식물을 다 키워서 씨앗을 얻어보세요.');
+            }
+        }
+        
+        // 도감 팝업 표시
+        function showEncyclopedia() {
+            document.getElementById('encyclopedia-popup').classList.add('active');
+        }
+        
+        // 팝업 닫기
+        function closePopup() {
+            document.getElementById('encyclopedia-popup').classList.remove('active');
+        }
+        
+        // 외부 클릭 시 팝업 닫기
+        document.getElementById('encyclopedia-popup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePopup();
+            }
+        });
+        
+        // 진행률 업데이트 (예시)
+        setInterval(() => {
+            const motivationalTexts = [
+                "오늘 목표까지 700ml 남았어요",
+                "거의 다 왔어요! 조금만 더 화이팅!",
+                "물 한 잔 더 마시면 목표 달성이에요!",
+                "꾸준히 잘하고 있어요! 👏"
+            ];
+            const randomText = motivationalTexts[Math.floor(Math.random() * motivationalTexts.length)];
+            document.querySelector('.motivational-text').textContent = randomText;
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Together - 친구 & 랭킹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* 상단 네비게이션 바 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .settings-icon {
+            width: 24px;
+            height: 24px;
+            background: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        /* 액션 버튼 영역 */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #357ABD;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #4A90E2;
+            border: 2px solid #4A90E2;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0f7ff;
+        }
+        
+        /* 일간 랭킹 섹션 */
+        .ranking-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .ranking-date {
+            font-size: 12px;
+            color: #666;
+            background: #e0e0e0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        /* 친구 리스트 */
+        .friends-list {
+            padding: 0;
+        }
+        
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .friend-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .friend-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .rank-1 {
+            background: #FFD700;
+            color: #B8860B;
+        }
+        
+        .rank-2 {
+            background: #C0C0C0;
+            color: #696969;
+        }
+        
+        .rank-3 {
+            background: #CD7F32;
+            color: white;
+        }
+        
+        .rank-other {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4A90E2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .friend-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .friend-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .friend-status {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .friend-stats {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .friend-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4A90E2;
+            margin-bottom: 2px;
+        }
+        
+        .friend-achievement {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .achievement-rate {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .rate-high {
+            background: #E8F5E8;
+            color: #2D7D32;
+        }
+        
+        .rate-medium {
+            background: #FFF3E0;
+            color: #F57C00;
+        }
+        
+        .rate-low {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .empty-action {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* 팝업 */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .popup.active {
+            display: flex;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px;
+            width: calc(100% - 40px);
+            max-width: 320px;
+        }
+        
+        .popup-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            height: 44px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #4A90E2;
+        }
+        
+        .popup-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .popup-btn {
+            flex: 1;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .popup-btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+        
+        .popup-btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            padding: 8px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #4A90E2;
+        }
+        
+        .nav-item:hover {
+            color: #4A90E2;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+        }
+        
+        .wireframe-note {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #FF9500;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        /* 자신 표시 */
+        .friend-item.me {
+            background: #f0f7ff;
+            border: 1px solid #4A90E2;
+            margin: 0 -1px;
+        }
+        
+        .friend-item.me .friend-name::after {
+            content: " (나)";
+            color: #4A90E2;
+            font-weight: 600;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wireframe-note">LOW-FI WIREFRAME</div>
+    
+    <div class="container">
+        <!-- 상단 네비게이션 바 -->
+        <div class="top-nav">
+            <div class="page-title">친구 & 랭킹</div>
+            <div class="settings-icon" onclick="alert('설정 화면으로 이동')">⚙️</div>
+        </div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 액션 버튼 -->
+            <div class="action-buttons">
+                <button class="action-btn btn-primary" onclick="showAddFriendPopup()">
+                    👥 친구 추가
+                </button>
+                <button class="action-btn btn-secondary" onclick="showInvitePopup()">
+                    📤 친구 초대
+                </button>
+            </div>
+            
+            <!-- 일간 랭킹 -->
+            <div class="ranking-section">
+                <div class="section-header">
+                    <div class="section-title">오늘의 랭킹</div>
+                    <div class="ranking-date">09/24</div>
+                </div>
+                
+                <div class="friends-list" id="friends-list">
+                    <div class="friend-item">
+                        <div class="rank-badge rank-1">1</div>
+                        <div class="friend-avatar">🌊</div>
+                        <div class="friend-info">
+                            <div class="friend-name">물마시는왕</div>
+                            <div class="friend-status">2시간 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">2.5L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-high">125%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="friend-item">
+                        <div class="rank-badge rank-2">2</div>
+                        <div class="friend-avatar">💧</div>
+                        <div class="friend-info">
+                            <div class="friend-name">건강지킴이</div>
+                            <div class="friend-status">1시간 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">2.2L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-high">110%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="friend-item me">
+                        <div class="rank-badge rank-3">3</div>
+                        <div class="friend-avatar">🌱</div>
+                        <div class="friend-info">
+                            <div class="friend-name">물마시는사람</div>
+                            <div class="friend-status">30분 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">1.8L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-high">90%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="friend-item">
+                        <div class="rank-badge rank-other">4</div>
+                        <div class="friend-avatar">🏃</div>
+                        <div class="friend-info">
+                            <div class="friend-name">운동러버</div>
+                            <div class="friend-status">4시간 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">1.5L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-medium">75%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="friend-item">
+                        <div class="rank-badge rank-other">5</div>
+                        <div class="friend-avatar">📚</div>
+                        <div class="friend-info">
+                            <div class="friend-name">공부하는학생</div>
+                            <div class="friend-status">6시간 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">1.2L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-medium">60%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="friend-item">
+                        <div class="rank-badge rank-other">6</div>
+                        <div class="friend-avatar">😴</div>
+                        <div class="friend-info">
+                            <div class="friend-name">늘피곤한직장인</div>
+                            <div class="friend-status">1일 전 활동</div>
+                        </div>
+                        <div class="friend-stats">
+                            <div class="friend-amount">0.8L</div>
+                            <div class="friend-achievement">
+                                <span class="achievement-rate rate-low">40%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 하단 네비게이션 -->
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="alert('홈 화면으로 이동')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">홈</div>
+            </div>
+            <div class="nav-item" onclick="alert('대시보드 화면으로 이동')">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">대시보드</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">친구랭킹</div>
+            </div>
+            <div class="nav-item" onclick="alert('설정 화면으로 이동')">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">설정</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 친구 추가 팝업 -->
+    <div class="popup" id="add-friend-popup">
+        <div class="popup-content">
+            <div class="popup-title">친구 추가</div>
+            <div class="form-group">
+                <label class="form-label">친구 아이디</label>
+                <input type="text" class="form-input" placeholder="친구의 아이디를 입력하세요" id="friend-id-input">
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-btn popup-btn-secondary" onclick="closePopup()">취소</button>
+                <button class="popup-btn popup-btn-primary" onclick="addFriend()">추가</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 친구 초대 팝업 -->
+    <div class="popup" id="invite-popup">
+        <div class="popup-content">
+            <div class="popup-title">친구 초대</div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.5;">
+                초대 링크를 공유해서 새로운 친구를 초대해보세요!<br>
+                신규 유저가 가입하면 랜덤 씨앗을 받을 수 있어요.
+            </p>
+            <div class="form-group">
+                <label class="form-label">초대 링크</label>
+                <input type="text" class="form-input" value="https://watertogether.app/invite/abc123" id="invite-link" readonly>
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-btn popup-btn-secondary" onclick="closePopup()">닫기</button>
+                <button class="popup-btn popup-btn-primary" onclick="copyInviteLink()">링크 복사</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 팝업 관련 함수
+        function showAddFriendPopup() {
+            document.getElementById('add-friend-popup').classList.add('active');
+        }
+        
+        function showInvitePopup() {
+            document.getElementById('invite-popup').classList.add('active');
+        }
+        
+        function closePopup() {
+            document.querySelectorAll('.popup').forEach(popup => {
+                popup.classList.remove('active');
+            });
+        }
+        
+        // 친구 추가 함수
+        function addFriend() {
+            const friendId = document.getElementById('friend-id-input').value.trim();
+            if (!friendId) {
+                alert('친구 아이디를 입력해주세요.');
+                return;
+            }
+            
+            // 중복 확인 시뮬레이션
+            if (friendId === 'duplicate') {
+                alert('이미 추가된 친구입니다.');
+                return;
+            }
+            
+            if (friendId === 'notfound') {
+                alert('존재하지 않는 아이디입니다.');
+                return;
+            }
+            
+            // 성공적으로 추가
+            alert(`${friendId}님을 친구로 추가했습니다! 🎉\n랜덤 씨앗을 받았어요!`);
+            document.getElementById('friend-id-input').value = '';
+            closePopup();
+            
+            // 친구 목록 업데이트 (실제로는 서버에서 가져옴)
+            updateFriendsList();
+        }
+        
+        // 초대 링크 복사
+        function copyInviteLink() {
+            const inviteLink = document.getElementById('invite-link');
+            inviteLink.select();
+            document.execCommand('copy');
+            alert('초대 링크가 복사되었습니다! 친구들에게 공유해보세요.');
+        }
+        
+        // 친구 목록 업데이트 (예시)
+        function updateFriendsList() {
+            // 실제로는 서버에서 데이터를 가져와서 랭킹을 자동으로 정렬
+            console.log('친구 목록 업데이트됨');
+        }
+        
+        // 외부 클릭 시 팝업 닫기
+        document.querySelectorAll('.popup').forEach(popup => {
+            popup.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePopup();
+                }
+            });
+        });
+        
+        // 친구 아이템 클릭 시 상세 정보
+        document.querySelectorAll('.friend-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const name = this.querySelector('.friend-name').textContent.replace(' (나)', '');
+                const amount = this.querySelector('.friend-amount').textContent;
+                const rate = this.querySelector('.achievement-rate').textContent;
+                
+                alert(`${name} 상세 정보:\n오늘 섭취량: ${amount}\n달성률: ${rate}\n\n(프로필 화면으로 이동 예정)`);
+            });
+        });
+        
+        // 페이지 로드 시 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.friend-item');
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+        });
+        
+        // 실시간 랭킹 업데이트 시뮬레이션
+        setInterval(() => {
+            const ranks = document.querySelectorAll('.ranking-date');
+            if (ranks.length > 0) {
+                const now = new Date();
+                const time = now.toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+                ranks[0].textContent = `09/24 ${time}`;
+            }
+        }, 30000); // 30초마다 업데이트
+    </script>
+</body>
+</html>
