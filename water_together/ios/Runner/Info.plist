@@ -45,5 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 알림 권한 설명 -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>물 마시기 알림과 목표 달성 알림을 받기 위해 알림 권한이 필요합니다.</string>
 </dict>
 </plist>

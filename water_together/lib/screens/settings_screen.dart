@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/water_provider.dart';
+import '../widgets/notification_settings.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -135,20 +136,18 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      SwitchListTile(
-                        title: const Text('물 마시기 알림'),
-                        subtitle: const Text('정기적으로 물 마시기를 알려드립니다'),
-                        value: true, // 실제로는 설정에서 가져와야 함
-                        onChanged: (value) {
-                          // 알림 설정 변경 로직
-                        },
-                      ),
-                      SwitchListTile(
-                        title: const Text('목표 달성 알림'),
-                        subtitle: const Text('목표 달성 시 알림을 받습니다'),
-                        value: true, // 실제로는 설정에서 가져와야 함
-                        onChanged: (value) {
-                          // 알림 설정 변경 로직
+                      ListTile(
+                        leading: const Icon(Icons.notifications),
+                        title: const Text('알림 설정'),
+                        subtitle: const Text('알림 종류와 시간을 설정하세요'),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationSettings(),
+                            ),
+                          );
                         },
                       ),
                     ],

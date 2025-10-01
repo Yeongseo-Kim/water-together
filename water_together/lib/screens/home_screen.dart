@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/water_provider.dart';
 import '../models/water_log.dart';
+import 'settings_screen.dart';
+import '../widgets/tutorial_overlay.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool showWelcomeMessage = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +44,11 @@ class HomeScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+          // 설정 아이콘 추가
+          IconButton(
+            onPressed: () => _showSettings(context),
+            icon: const Icon(Icons.settings),
           ),
         ],
       ),
@@ -345,6 +359,16 @@ class HomeScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  // 설정 화면 표시 메서드 추가
+  void _showSettings(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
+      ),
     );
   }
 }

@@ -4,8 +4,12 @@ import '../models/plant.dart';
 import '../models/water_log.dart';
 import '../models/inventory.dart';
 import '../models/friend.dart';
+import '../services/notification_service.dart';
 
 class WaterProvider extends ChangeNotifier {
+  // 알림 서비스
+  final NotificationService _notificationService = NotificationService();
+
   // 현재 사용자 정보
   User? _currentUser;
   User? get currentUser => _currentUser;
@@ -23,7 +27,7 @@ class WaterProvider extends ChangeNotifier {
   int get dailyGoal => _dailyGoal;
 
   // 물 기록 목록
-  List<WaterLog> _waterLogs = [];
+  final List<WaterLog> _waterLogs = [];
   List<WaterLog> get waterLogs => _waterLogs;
 
   // 인벤토리 (씨앗 목록)
@@ -31,7 +35,7 @@ class WaterProvider extends ChangeNotifier {
   List<Inventory> get inventory => _inventory;
 
   // 친구 목록
-  List<Friend> _friends = [];
+  final List<Friend> _friends = [];
   List<Friend> get friends => _friends;
 
   // 현재 선택된 탭 인덱스
@@ -74,6 +78,12 @@ class WaterProvider extends ChangeNotifier {
         _currentPlant = _currentPlant!.growToNextStage();
       }
     }
+    
+    // 목표 달성 확인 및 알림
+    _checkGoalAchievement();
+    
+    // 진행률 기반 알림 (50%, 75% 달성 시)
+    _checkProgressMilestones();
     
     notifyListeners();
   }
@@ -178,5 +188,41 @@ class WaterProvider extends ChangeNotifier {
     ];
 
     notifyListeners();
+  }
+
+  // 목표 달성 확인
+  void _checkGoalAchievement() {
+    if (isGoalAchieved()) {
+      _notificationService.showGoalAchievementNotification();
+    }
+  }
+
+  // 진행률 마일스톤 확인
+  void _checkProgressMilestones() {
+    final progress = getGoalAchievementRate();
+    
+    // 50% 달성 시 알림
+    if (progress >= 0.5 && progress < 0.6) {
+      _notificationService.showProgressNotification(progress);
+    }
+    // 75% 달성 시 알림
+    else if (progress >= 0.75 && progress < 0.8) {
+      _notificationService.showProgressNotification(progress);
+    }
+  }
+
+  // 친구 활동 알림 (외부에서 호출)
+  void notifyFriendActivity(String friendName) {
+    _notificationService.showFriendActivityNotification(friendName);
+  }
+
+  // 챌린지 알림 (외부에서 호출)
+  void notifyChallenge(String challengeName) {
+    _notificationService.showChallengeNotification(challengeName);
+  }
+
+  // 시간대별 맞춤 알림 (외부에서 호출)
+  void showTimeBasedNotification() {
+    _notificationService.showTimeBasedNotification();
   }
 }

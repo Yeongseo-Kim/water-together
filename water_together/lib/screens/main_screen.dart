@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'dashboard_screen.dart';
 import 'friends_ranking_screen.dart';
 import 'settings_screen.dart';
+import 'collection_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const DashboardScreen(),
     const FriendsRankingScreen(),
-    const SettingsScreen(),
+    const CollectionScreen(),
   ];
 
   @override
@@ -56,8 +57,8 @@ class _MainScreenState extends State<MainScreen> {
                 label: '친구·랭킹',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: '설정',
+                icon: Icon(Icons.collections_bookmark),
+                label: '도감',
               ),
             ],
           ),
