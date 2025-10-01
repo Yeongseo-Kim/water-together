@@ -1,3 +1,120 @@
 ---
 alwaysApply: true
 ---
+# 물먹자 투게더 프로젝트 커서룰
+
+## 📋 프로젝트 개요
+- **앱 이름**: 물먹자 투게더 (Water Together)
+- **목적**: 하루 물 섭취 습관을 재미있게 형성하도록 돕는 소셜 건강 앱
+- **개발 방식**: Flutter 기반 모바일 앱
+- **개발 기간**: 4주 (MVP 기준)
+
+## 🎯 개발 원칙
+
+### 1. 문서 기반 개발
+- **모든 코드 작성은 반드시 프로젝트 문서를 기반으로 해야 합니다**
+- 다음 문서들을 우선적으로 참조하여 개발하세요:
+  - `docs/project/PRD.md` - 제품 요구사항 정의서
+  - `docs/project/IA.md` - 정보 아키텍처
+  - `docs/project/UserFlow.md` - 사용자 플로우
+  - `docs/development/TechSpec.md` - 기술 사양서
+  - `docs/development/Detailed_Task_List.md` - 상세 개발 태스크 리스트
+  - `docs/design/UI_Design_Guide.md` - UI 디자인 가이드
+
+### 2. 문서 변경 시 승인 필요
+- **문서와 다른 내용으로 코드를 작성하려면 반드시 사용자에게 허락을 받아야 합니다**
+- 문서에 없는 새로운 기능이나 변경사항을 추가하려면 먼저 해당 문서를 수정하라고 요청하세요
+- 문서 수정 후에야 코드 변경을 진행할 수 있습니다
+
+### 3. 문서 업데이트 의무
+- **코드 변경으로 인해 문서 내용과 불일치가 발생하면 반드시 해당 문서를 수정하세요**
+- 기획 변경 시: `docs/project/` 폴더의 해당 문서 수정
+- 디자인 변경 시: `docs/design/UI_Design_Guide.md` 업데이트
+- 기술 사양 변경 시: `docs/development/TechSpec.md` 업데이트
+- 개발 진행 상황: `docs/development/Detailed_Task_List.md` 체크리스트 업데이트
+
+## 🏗️ 프로젝트 구조
+
+### 현재 폴더 구조 (문서 기반)
+```
+water/
+├── docs/
+│   ├── project/          # PRD.md, IA.md, UserFlow.md
+│   ├── design/           # UI_Design_Guide.md  
+│   └── development/      # TechSpec.md, Detailed_Task_List.md
+├── prototypes/html/      # HTML 프로토타입
+└── README.md
+```
+
+### Flutter 표준 프로젝트 구조
+```
+lib/
+├── core/                 # 공통 기능 (constants, themes, utils)
+├── data/                 # 데이터 레이어 (models, repositories, datasources)
+├── domain/               # 비즈니스 로직 (entities, usecases)
+├── presentation/         # UI 레이어 (pages, widgets, providers)
+└── main.dart            # 앱 진입점
+```
+
+## 🎨 디자인 가이드
+
+> **참조**: `docs/design/UI_Design_Guide.md`
+
+### MVP 디자인 원칙
+- Flutter 기본 Material 컬러/폰트/버튼/아이콘 사용
+- 이모티콘 활용: 🌱🌿🌸🌰🌷📖
+- 커스텀 디자인 최소화
+
+### 화면 구성
+- **홈**: 화분 상태 + 물 기록 버튼 + 인벤토리 + 도감 바로가기
+- **대시보드**: 날짜-시각화-섭취량-목표달성여부 표
+- **친구·랭킹**: 친구 목록 + 일간 랭킹 + 친구 추가/초대
+- **도감**: 식물 썸네일 + 팝업 상세 정보
+- **설정**: 목표/알림/계정 관리
+
+## 🔧 기술 스택
+
+> **참조**: `docs/development/TechSpec.md`
+
+### 핵심 기술
+- Flutter + Provider + SharedPreferences + flutter_local_notifications
+
+### 데이터 모델
+- **User**: userId, nickname, dailyWaterGoal
+- **Plant**: plantId, name, stage, growthProgress  
+- **WaterLog**: logId, userId, date, amount
+- **Inventory**: userId, seedId, quantity
+- **Friend**: userId, friendId, status
+
+## 📱 핵심 기능 (MVP)
+
+> **참조**: `docs/project/PRD.md`
+
+### 주요 기능
+1. **물 섭취 알림**: 목표 설정 + 알림 + 기록(한모금/반컵/한컵)
+2. **친구 & 랭킹**: 아이디 기반 친구 추가 + 일간 랭킹 + 초대 보상
+3. **식물 성장**: 씨앗→줄기→꽃→열매 (500ml→1L→2L) + 보상 시스템
+4. **도감**: 수집한 식물 썸네일 + 팝업 상세 정보
+5. **대시보드**: 날짜별 표 (날짜-시각화-섭취량-달성여부)
+6. **공유**: 정원/도감/달성 기록 SNS 공유
+
+## 🚀 개발 우선순위
+
+> **참조**: `docs/development/Detailed_Task_List.md`
+
+1. **MVP 기능**: 알림, 물 기록, 화분 성장, 친구 추가, 도감, 대시보드
+2. **씨앗/선물 시스템**: 친구 추가 보상, 다 키운 식물 씨앗  
+3. **공유 기능**
+4. **고도화**: 정원 꾸미기, 희귀 씨앗, 챌린지, AI
+
+## ⚠️ 개발 규칙
+
+1. **문서 기반**: 모든 코드는 프로젝트 문서 참조 필수
+2. **변경 승인**: 문서와 다른 내용은 사용자 허락 필요  
+3. **문서 동기화**: 코드 변경 시 관련 문서 업데이트 필수
+4. **MVP 중심**: 핵심 기능 집중, 불필요한 기능 추가 금지
+5. **Flutter 표준**: 커스텀 디자인보다 Flutter 기본 요소 활용
+
+---
+
+**문서 변경 요청 시**: 먼저 해당 문서를 수정한 후 코드 변경 진행

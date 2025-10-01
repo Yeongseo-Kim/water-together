@@ -1,9 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/water_provider.dart';
+import '../services/settings_service.dart';
+import '../services/notification_service.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final SettingsService _settingsService = SettingsService();
+  final NotificationService _notificationService = NotificationService();
+  
+  bool _notificationEnabled = true;
+  bool _goalAchievementNotification = true;
+  List<String> _notificationTimes = ['09:00', '12:00', '15:00', '18:00'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final notificationEnabled = await _settingsService.getNotificationEnabled();
+    final goalAchievementNotification = await _settingsService.getGoalAchievementNotification();
+    final notificationTimes = await _settingsService.getNotificationTimes();
+    
+    setState(() {
+      _notificationEnabled = notificationEnabled;
+      _goalAchievementNotification = goalAchievementNotification;
+      _notificationTimes = notificationTimes;
+    });
+  }
+
+  Future<void> _updateNotificationEnabled(bool value) async {
+    await _settingsService.setNotificationEnabled(value);
+    setState(() {
+      _notificationEnabled = value;
+    });
+    
+    if (value) {
+      await _notificationService.updateNotificationSchedule();
+    } else {
+      await _notificationService.cancelAllNotifications();
+    }
+  }
+
+  Future<void> _updateGoalAchievementNotification(bool value) async {
+    await _settingsService.setGoalAchievementNotification(value);
+    setState(() {
+      _goalAchievementNotification = value;
+    });
+  }
+
+  Future<void> _updateNotificationTimes(List<String> times) async {
+    await _settingsService.setNotificationTimes(times);
+    setState(() {
+      _notificationTimes = times;
+    });
+    
+    if (_notificationEnabled) {
+      await _notificationService.updateNotificationSchedule();
+    }
+  }
+
+  void _showNotificationTimeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => NotificationTimeDialog(
+        currentTimes: _notificationTimes,
+        onTimesChanged: _updateNotificationTimes,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,18 +211,22 @@ class SettingsScreen extends StatelessWidget {
                       SwitchListTile(
                         title: const Text('물 마시기 알림'),
                         subtitle: const Text('정기적으로 물 마시기를 알려드립니다'),
-                        value: true, // 실제로는 설정에서 가져와야 함
-                        onChanged: (value) {
-                          // 알림 설정 변경 로직
-                        },
+                        value: _notificationEnabled,
+                        onChanged: _updateNotificationEnabled,
                       ),
+                      if (_notificationEnabled) ...[
+                        ListTile(
+                          title: const Text('알림 시간 설정'),
+                          subtitle: Text(_notificationTimes.join(', ')),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onTap: _showNotificationTimeDialog,
+                        ),
+                      ],
                       SwitchListTile(
                         title: const Text('목표 달성 알림'),
                         subtitle: const Text('목표 달성 시 알림을 받습니다'),
-                        value: true, // 실제로는 설정에서 가져와야 함
-                        onChanged: (value) {
-                          // 알림 설정 변경 로직
-                        },
+                        value: _goalAchievementNotification,
+                        onChanged: _updateGoalAchievementNotification,
                       ),
                     ],
                   ),
@@ -302,6 +379,109 @@ class SettingsScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+// 알림 시간 설정 다이얼로그
+class NotificationTimeDialog extends StatefulWidget {
+  final List<String> currentTimes;
+  final Function(List<String>) onTimesChanged;
+
+  const NotificationTimeDialog({
+    super.key,
+    required this.currentTimes,
+    required this.onTimesChanged,
+  });
+
+  @override
+  State<NotificationTimeDialog> createState() => _NotificationTimeDialogState();
+}
+
+class _NotificationTimeDialogState extends State<NotificationTimeDialog> {
+  late List<String> _times;
+  final List<String> _presetTimes = [
+    '08:00', '09:00', '10:00', '11:00', '12:00',
+    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _times = List.from(widget.currentTimes);
+  }
+
+  void _addTime(String time) {
+    if (!_times.contains(time)) {
+      setState(() {
+        _times.add(time);
+        _times.sort();
+      });
+    }
+  }
+
+  void _removeTime(String time) {
+    setState(() {
+      _times.remove(time);
+    });
+  }
+
+  void _saveTimes() {
+    widget.onTimesChanged(_times);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('알림 시간 설정'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('선택된 알림 시간:'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _times.map((time) => Chip(
+                label: Text(time),
+                onDeleted: () => _removeTime(time),
+                deleteIcon: const Icon(Icons.close, size: 18),
+              )).toList(),
+            ),
+            const SizedBox(height: 16),
+            const Text('추가할 시간을 선택하세요:'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _presetTimes.map((time) => FilterChip(
+                label: Text(time),
+                selected: _times.contains(time),
+                onSelected: (selected) {
+                  if (selected) {
+                    _addTime(time);
+                  } else {
+                    _removeTime(time);
+                  }
+                },
+              )).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        TextButton(
+          onPressed: _saveTimes,
+          child: const Text('저장'),
+        ),
+      ],
     );
   }
 }

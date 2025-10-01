@@ -24,9 +24,13 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // 초기 데이터 로드
+    // 초기 데이터 로드 (에러 처리 추가)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WaterProvider>().loadInitialData();
+      try {
+        context.read<WaterProvider>().loadInitialData();
+      } catch (e) {
+        print('Error loading initial data: $e');
+      }
     });
   }
 
@@ -34,6 +38,22 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Consumer<WaterProvider>(
       builder: (context, waterProvider, child) {
+        // Provider가 초기화되지 않았을 때 로딩 화면 표시
+        if (waterProvider.currentUser == null) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('앱을 초기화하는 중...'),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Scaffold(
           body: _screens[waterProvider.currentTabIndex],
           bottomNavigationBar: BottomNavigationBar(
