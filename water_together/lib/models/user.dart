@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'plant.dart';
 
 part 'user.g.dart';
 
@@ -9,6 +10,7 @@ class User {
   final String password;
   final int dailyWaterGoal; // ml 단위
   final DateTime createdAt;
+  final Plant? plant; // 사용자의 식물
 
   User({
     required this.userId,
@@ -16,6 +18,7 @@ class User {
     required this.password,
     required this.dailyWaterGoal,
     required this.createdAt,
+    this.plant,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -36,6 +39,7 @@ class User {
     String? password,
     int? dailyWaterGoal,
     DateTime? createdAt,
+    Plant? plant,
   }) {
     return User(
       userId: userId ?? this.userId,
@@ -43,6 +47,7 @@ class User {
       password: password ?? this.password,
       dailyWaterGoal: dailyWaterGoal ?? this.dailyWaterGoal,
       createdAt: createdAt ?? this.createdAt,
+      plant: plant ?? this.plant,
     );
   }
 }

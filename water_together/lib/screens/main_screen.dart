@@ -26,8 +26,8 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     // 초기 데이터 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WaterProvider>().loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<WaterProvider>().loadInitialData();
     });
   }
 

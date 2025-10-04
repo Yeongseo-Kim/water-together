@@ -1,3 +1,4 @@
+// lib/models/plant.dart
 import 'package:json_annotation/json_annotation.dart';
 
 part 'plant.g.dart';
@@ -23,66 +24,37 @@ class Plant {
   factory Plant.fromJson(Map<String, dynamic> json) => _$PlantFromJson(json);
   Map<String, dynamic> toJson() => _$PlantToJson(this);
 
-  // 성장 단계별 이미지 경로 관리
-  String getStageImagePath() {
-    switch (stage) {
-      case 0:
-        return '🌱'; // 씨앗
-      case 1:
-        return '🌿'; // 줄기
-      case 2:
-        return '🌸'; // 꽃
-      case 3:
-        return '🌰'; // 열매
-      default:
-        return '🌱';
-    }
+  // 식물에 물 주기
+  Plant addWater(int waterAmount) {
+    return copyWith(
+      growthProgress: growthProgress + waterAmount,
+    );
   }
 
-  // 성장 조건 검증 메서드
+  // 다음 단계로 성장 가능한지 확인
   bool canGrowToNextStage() {
-    switch (stage) {
-      case 0: // 씨앗 → 줄기
-        return growthProgress >= 500; // 500ml
-      case 1: // 줄기 → 꽃
-        return growthProgress >= 1000; // 1L
-      case 2: // 꽃 → 열매
-        return growthProgress >= 2000; // 2L
-      default:
-        return false;
-    }
+    return growthProgress >= totalGrowthRequired && stage < 3;
   }
 
-  // 성장 진행률 계산 (0.0 ~ 1.0)
-  double getGrowthProgressRate() {
-    if (totalGrowthRequired == 0) return 0.0;
-    return (growthProgress / totalGrowthRequired).clamp(0.0, 1.0);
-  }
-
-  // 다음 성장 단계로 진행
+  // 다음 단계로 성장
   Plant growToNextStage() {
     if (!canGrowToNextStage()) return this;
     
-    return Plant(
-      plantId: plantId,
-      name: name,
+    return copyWith(
       stage: stage + 1,
-      growthProgress: growthProgress,
-      totalGrowthRequired: totalGrowthRequired,
-      imagePath: imagePath,
+      growthProgress: 0,
+      totalGrowthRequired: _getNextStageRequirement(stage + 1),
     );
   }
 
-  // 물 섭취량 추가
-  Plant addWater(int amount) {
-    return Plant(
-      plantId: plantId,
-      name: name,
-      stage: stage,
-      growthProgress: growthProgress + amount,
-      totalGrowthRequired: totalGrowthRequired,
-      imagePath: imagePath,
-    );
+  // 다음 단계 성장 요구량 계산
+  int _getNextStageRequirement(int nextStage) {
+    switch (nextStage) {
+      case 1: return 500;   // 줄기
+      case 2: return 1000;   // 꽃
+      case 3: return 2000;   // 열매
+      default: return 0;
+    }
   }
 
   // 식물 복사 (수정용)

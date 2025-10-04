@@ -12,6 +12,9 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       password: json['password'] as String,
       dailyWaterGoal: (json['dailyWaterGoal'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      plant: json['plant'] == null
+          ? null
+          : Plant.fromJson(json['plant'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -20,4 +23,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'password': instance.password,
       'dailyWaterGoal': instance.dailyWaterGoal,
       'createdAt': instance.createdAt.toIso8601String(),
+      'plant': instance.plant,
     };

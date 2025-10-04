@@ -1,0 +1,26 @@
+---
+alwaysApply: false
+description: Flutter macOS 데스크톱 앱 실행 및 재실행 명령어
+---
+# Water Together - Flutter macOS Desktop App
+
+## 앱 실행/재실행
+```bash
+# 프로젝트 디렉토리로 이동
+cd /Users/eldrac/Desktop/water/water_together
+
+# 앱 실행
+flutter run -d macos
+
+# 앱 재실행 (핫 리로드: 'r', 핫 리스타트: 'R', 종료: 'q')
+flutter run -d macos --hot
+
+# 완전 재시작 (캐시 정리 + 재시작)
+flutter clean && flutter pub get && flutter run -d macos
+```
+
+## 개발 환경
+- Flutter SDK: ^3.5.4
+- 타겟: macOS Desktop
+- 상태관리: Provider
+- 디렉토리: `/Users/eldrac/Desktop/water/water_together/`

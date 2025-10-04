@@ -56,9 +56,17 @@ class NotificationService {
         requestSoundPermission: true,
       );
 
+      // macOS 초기화 설정
+      const DarwinInitializationSettings macosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+
       const InitializationSettings settings = InitializationSettings(
         android: androidSettings,
         iOS: iosSettings,
+        macOS: macosSettings,
       );
 
       await _notifications.initialize(
