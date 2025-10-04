@@ -6,8 +6,8 @@ import '../models/water_amount.dart';
 import 'settings_screen.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../services/tutorial_service.dart';
-import '../widgets/inventory_popup.dart';
 import '../data/plant_messages.dart';
+import '../widgets/plant_completion_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,9 +157,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 식물 완성 팝업 표시
+  void _showPlantCompletionDialog(BuildContext context, WaterProvider waterProvider) {
+    if (waterProvider.showCompletionDialog) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PlantCompletionDialog(
+          plantName: waterProvider.completedPlantName,
+          plantImage: waterProvider.completedPlantImage,
+          rewardPlantSeed: waterProvider.rewardPlantSeed,
+          rewardRandomSeed: waterProvider.rewardRandomSeed,
+        ),
+      ).then((_) {
+        // 팝업이 닫힌 후 WaterProvider의 상태 업데이트
+        waterProvider.closeCompletionDialog();
+      });
+    }
+  }
+
   Widget _buildHomeContent() {
     return Consumer<WaterProvider>(
       builder: (context, waterProvider, child) {
+        // 식물 완성 팝업 표시
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showPlantCompletionDialog(context, waterProvider);
+        });
+        
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -255,48 +279,133 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Column(
                         children: [
-                          if (waterProvider.currentUser?.plant != null) ...[
-                            Row(
+                          if (waterProvider.currentUser?.plant != null && waterProvider.currentUser!.plant!.completedAt == null) ...[
+                            Column(
                               children: [
-                                // 화분 영역
-                                Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: Colors.brown.shade100,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.brown.shade300),
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.local_florist,
-                                      size: 60,
-                                      color: Colors.green.shade600,
+                                // 화분 영역 (가운데 정렬)
+                                Center(
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.brown.shade100,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: Colors.brown.shade300),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            waterProvider.currentUser!.plant!.currentStageImage,
+                                            style: const TextStyle(fontSize: 48),
+                                          ),
+                                          // 디버그 정보
+                                          Text(
+                                            'Stage: ${waterProvider.currentUser!.plant!.stage}',
+                                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(height: 16),
                                 // 식물 정보 영역
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        waterProvider.currentUser!.plant!.name,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      waterProvider.currentUser!.plant!.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '단계 ${waterProvider.currentUser!.plant!.stage}',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.green.shade200),
+                                      ),
+                                      child: Text(
+                                        'Stage ${waterProvider.currentUser!.plant!.stage}',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.grey.shade600,
+                                          color: Colors.green.shade700,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    // 성장 진행률 표시
+                                    Container(
+                                      width: double.infinity,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: (waterProvider.currentUser!.plant!.growthProgress / waterProvider.currentUser!.plant!.totalGrowthRequired).clamp(0.0, 1.0),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.shade400,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${waterProvider.currentUser!.plant!.growthProgress}/${waterProvider.currentUser!.plant!.totalGrowthRequired}ml',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ] else if (waterProvider.currentUser?.plant != null && waterProvider.currentUser!.plant!.completedAt != null) ...[
+                            // 완성된 식물 - 빈 화분으로 표시
+                            Column(
+                              children: [
+                                Center(
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.brown.shade100,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: Colors.brown.shade300),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.local_florist,
+                                        size: 60,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '새로운 씨앗을 심어보세요!',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '인벤토리에서 씨앗을 선택하세요',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade500,
                                   ),
                                 ),
                               ],
@@ -377,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 8),
                               // 인벤토리 슬롯들
-                              ..._buildInventorySlots(),
+                              ..._buildInventorySlots(waterProvider),
                               const SizedBox(width: 8),
                               // 오른쪽 화살표
                               IconButton(
@@ -521,7 +630,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool get _canGoLeft => _currentInventoryPage > 0;
   
   bool get _canGoRight {
-    final totalItems = _getInventoryItems().length;
+    // 현재 인벤토리 아이템 수를 확인 (기본값 사용)
+    final totalItems = 6; // 기본 씨앗 개수
     final totalPages = (totalItems / _itemsPerPage).ceil();
     return _currentInventoryPage < totalPages - 1;
   }
@@ -542,56 +652,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
   
-  List<Map<String, dynamic>> _getInventoryItems() {
-    // 임시 씨앗 데이터 (실제로는 WaterProvider에서 가져오기)
-    return [
-      {
-        'id': 'seed_001',
-        'name': '기본 씨앗',
-        'image': '🌱',
-        'quantity': 3,
-        'description': '기본적인 식물 씨앗입니다. 물을 주면 자라요!',
-      },
-      {
-        'id': 'seed_002',
-        'name': '튤립 씨앗',
-        'image': '🌷',
-        'quantity': 1,
-        'description': '아름다운 튤립 씨앗입니다. 봄에 피어나요.',
-      },
-      {
-        'id': 'seed_003',
-        'name': '민들레 씨앗',
-        'image': '🌼',
-        'quantity': 2,
-        'description': '노란 민들레 씨앗입니다. 바람에 날려가요.',
-      },
-      {
-        'id': 'seed_004',
-        'name': '장미 씨앗',
-        'image': '🌹',
-        'quantity': 1,
-        'description': '사랑의 꽃 장미 씨앗입니다.',
-      },
-      {
-        'id': 'seed_005',
-        'name': '해바라기 씨앗',
-        'image': '🌻',
-        'quantity': 0,
-        'description': '태양을 따라 도는 해바라기 씨앗입니다.',
-      },
-      {
-        'id': 'seed_006',
-        'name': '선인장 씨앗',
-        'image': '🌵',
-        'quantity': 2,
-        'description': '사막의 선인장 씨앗입니다. 물을 적게 마셔요.',
-      },
-    ];
+  List<Map<String, dynamic>> _getInventoryItems(WaterProvider waterProvider) {
+    // WaterProvider에서 실제 인벤토리 데이터 가져오기
+    return waterProvider.getInventoryItems();
   }
   
-  List<Widget> _buildInventorySlots() {
-    final items = _getInventoryItems();
+  List<Widget> _buildInventorySlots(WaterProvider waterProvider) {
+    final items = _getInventoryItems(waterProvider);
     final startIndex = _currentInventoryPage * _itemsPerPage;
     final endIndex = (startIndex + _itemsPerPage).clamp(0, items.length);
     final currentPageItems = items.sublist(startIndex, endIndex);
@@ -701,6 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   
   void _showSeedPreview(BuildContext context, Map<String, dynamic> item) {
+    // 씨앗 상세 정보 다이얼로그만 표시 (전체 인벤토리 팝업 대신)
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -708,16 +776,70 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(item['image'], style: const TextStyle(fontSize: 24)),
             const SizedBox(width: 8),
-            Text(item['name']),
+            Expanded(
+              child: Text(
+                item['name'],
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(item['description']),
+            Text(
+              item['description'],
+              style: const TextStyle(fontSize: 16),
+            ),
             const SizedBox(height: 16),
-            Text('보유 수량: ${item['quantity']}개'),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.inventory, color: Colors.blue.shade600),
+                  const SizedBox(width: 8),
+                  Text(
+                    '보유 수량: ${item['quantity']}개',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (item['quantity'] == 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red.shade600, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '씨앗이 부족합니다',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -725,20 +847,46 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('닫기'),
           ),
-          if (item['quantity'] > 0)
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // 씨앗 심기 로직 추가 예정
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${item['name']} 심기 기능은 준비 중입니다'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: const Text('심기'),
-            ),
+          Consumer<WaterProvider>(
+            builder: (context, waterProvider, child) {
+              return ElevatedButton(
+                onPressed: item['quantity'] > 0 
+                  ? () async {
+                      // 실제 식물 심기 기능 호출
+                      final success = await waterProvider.plantSeed(
+                        item['id'],
+                        item['name'],
+                        item['image'],
+                      );
+                      
+                      if (success) {
+                        Navigator.of(context).pop(); // 씨앗 상세 다이얼로그 닫기
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${item['name']}을(를) 심었습니다! 🌱'),
+                            backgroundColor: Colors.green.shade600,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('씨앗 심기에 실패했습니다. 다시 시도해주세요.'),
+                            backgroundColor: Colors.red.shade600,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: item['quantity'] > 0 ? Colors.green.shade600 : Colors.grey.shade400,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(item['quantity'] > 0 ? '심기 🌱' : '씨앗 부족'),
+              );
+            },
+          ),
         ],
       ),
     );

@@ -40,6 +40,7 @@ class User {
     int? dailyWaterGoal,
     DateTime? createdAt,
     Plant? plant,
+    bool clearPlant = false,
   }) {
     return User(
       userId: userId ?? this.userId,
@@ -47,7 +48,7 @@ class User {
       password: password ?? this.password,
       dailyWaterGoal: dailyWaterGoal ?? this.dailyWaterGoal,
       createdAt: createdAt ?? this.createdAt,
-      plant: plant ?? this.plant,
+      plant: clearPlant ? null : (plant ?? this.plant),
     );
   }
 }

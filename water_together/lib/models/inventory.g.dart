@@ -11,6 +11,7 @@ Inventory _$InventoryFromJson(Map<String, dynamic> json) => Inventory(
       seedId: json['seedId'] as String,
       quantity: (json['quantity'] as num).toInt(),
       plantName: json['plantName'] as String,
+      image: json['image'] as String,
     );
 
 Map<String, dynamic> _$InventoryToJson(Inventory instance) => <String, dynamic>{
@@ -18,4 +19,5 @@ Map<String, dynamic> _$InventoryToJson(Inventory instance) => <String, dynamic>{
       'seedId': instance.seedId,
       'quantity': instance.quantity,
       'plantName': instance.plantName,
+      'image': instance.image,
     };

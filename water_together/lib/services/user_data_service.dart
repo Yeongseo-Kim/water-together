@@ -149,11 +149,13 @@ class UserDataService {
   }
 
   /// 사용자 식물 업데이트
-  Future<bool> updateUserPlant(String userId, Plant plant) async {
+  Future<bool> updateUserPlant(String userId, Plant? plant) async {
     try {
       final user = await loadUser();
       if (user != null && user.userId == userId) {
-        final updatedUser = user.copyWith(plant: plant);
+        final updatedUser = plant == null 
+          ? user.copyWith(clearPlant: true)
+          : user.copyWith(plant: plant);
         return await saveUser(updatedUser);
       }
       return false;
@@ -209,22 +211,38 @@ class UserDataService {
         'seeds': [
           {
             'id': 'seed_1',
-            'name': '해바라기 씨앗',
-            'image': '🌻',
+            'name': '민들레 씨앗',
+            'image': '🌼',
             'quantity': 3,
-            'description': '밝고 화사한 해바라기를 키울 수 있어요!',
+            'description': '밝고 화사한 민들레를 키울 수 있어요!',
             'rarity': 'common',
           },
           {
             'id': 'seed_2',
-            'name': '장미 씨앗',
-            'image': '🌹',
-            'quantity': 1,
-            'description': '아름다운 장미를 키울 수 있어요!',
+            'name': '해바라기 씨앗',
+            'image': '🌻',
+            'quantity': 2,
+            'description': '태양을 따라 도는 해바라기를 키울 수 있어요!',
             'rarity': 'rare',
           },
           {
             'id': 'seed_3',
+            'name': '선인장 씨앗',
+            'image': '🌵',
+            'quantity': 2,
+            'description': '조용하고 물을 적게 마시는 선인장을 키울 수 있어요!',
+            'rarity': 'common',
+          },
+          {
+            'id': 'seed_4',
+            'name': '장미 씨앗',
+            'image': '🌹',
+            'quantity': 1,
+            'description': '신비롭고 아름다운 장미를 키울 수 있어요!',
+            'rarity': 'epic',
+          },
+          {
+            'id': 'seed_5',
             'name': '튤립 씨앗',
             'image': '🌷',
             'quantity': 2,

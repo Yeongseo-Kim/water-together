@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'seed_preview_widget.dart';
+import '../providers/water_provider.dart';
 
 class InventoryPopup extends StatelessWidget {
   final List<Map<String, dynamic>> seeds;
@@ -109,35 +111,137 @@ class InventoryPopup extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(seed['name']),
+        title: Row(
+          children: [
+            Text(seed['image'], style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                seed['name'],
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              seed['image'],
-              style: const TextStyle(fontSize: 48),
+              seed['description'],
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            Text(seed['description']),
-            const SizedBox(height: 16),
-            Text('보유 수량: ${seed['quantity']}개'),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.inventory, color: Colors.blue.shade600),
+                  const SizedBox(width: 8),
+                  Text(
+                    '보유 수량: ${seed['quantity']}개',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (seed['quantity'] == 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red.shade600, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '씨앗이 부족합니다',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text('닫기'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              // UserFlow.md 요구사항: 심기 버튼 클릭 시 새로운 식물 심기
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // 인벤토리 팝업도 닫기
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${seed['name']}을(를) 심었습니다!')),
+          Consumer<WaterProvider>(
+            builder: (context, waterProvider, child) {
+              // 이미 식물이 있고 완성되지 않은 경우 심기 불가
+              final hasActivePlant = waterProvider.currentPlant != null && waterProvider.currentPlant!.completedAt == null;
+              final hasCompletedPlant = waterProvider.currentPlant != null && waterProvider.currentPlant!.completedAt != null;
+              final canPlant = seed['quantity'] > 0 && (!hasActivePlant || hasCompletedPlant);
+              
+              return ElevatedButton(
+                onPressed: canPlant
+                  ? () async {
+                      // 완성된 식물이 있으면 먼저 제거
+                      if (hasCompletedPlant) {
+                        await waterProvider.removeCompletedPlant();
+                      }
+                      
+                      // 실제 식물 심기 기능 호출
+                      final success = await waterProvider.plantSeed(
+                        seed['id'],
+                        seed['name'],
+                        seed['image'],
+                      );
+                      
+                      if (success) {
+                        Navigator.of(context).pop(); // 씨앗 상세 다이얼로그 닫기
+                        Navigator.of(context).pop(); // 인벤토리 팝업 닫기
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${seed['name']}을(를) 심었습니다! 🌱'),
+                            backgroundColor: Colors.green.shade600,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('씨앗 심기에 실패했습니다. 다시 시도해주세요.'),
+                            backgroundColor: Colors.red.shade600,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: canPlant ? Colors.green.shade600 : Colors.grey.shade400,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  hasActivePlant 
+                    ? '식물 있음 🌱' 
+                    : seed['quantity'] > 0 
+                      ? '심기 🌱' 
+                      : '씨앗 부족'
+                ),
               );
             },
-            child: const Text('심기'),
           ),
         ],
       ),

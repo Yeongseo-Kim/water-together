@@ -4,7 +4,6 @@ import '../providers/water_provider.dart';
 import 'home_screen.dart';
 import 'dashboard_screen.dart';
 import 'friends_ranking_screen.dart';
-import 'settings_screen.dart';
 import 'collection_screen.dart';
 
 class MainScreen extends StatefulWidget {

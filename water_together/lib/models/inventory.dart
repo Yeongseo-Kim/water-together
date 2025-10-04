@@ -8,12 +8,14 @@ class Inventory {
   final String seedId;
   final int quantity;
   final String plantName;
+  final String image;
 
   Inventory({
     required this.userId,
     required this.seedId,
     required this.quantity,
     required this.plantName,
+    required this.image,
   });
 
   factory Inventory.fromJson(Map<String, dynamic> json) => _$InventoryFromJson(json);
@@ -26,6 +28,7 @@ class Inventory {
       seedId: seedId,
       quantity: quantity + amount,
       plantName: plantName,
+      image: image,
     );
   }
 
@@ -38,6 +41,7 @@ class Inventory {
       seedId: seedId,
       quantity: quantity - 1,
       plantName: plantName,
+      image: image,
     );
   }
 
@@ -57,12 +61,14 @@ class Inventory {
     String? seedId,
     int? quantity,
     String? plantName,
+    String? image,
   }) {
     return Inventory(
       userId: userId ?? this.userId,
       seedId: seedId ?? this.seedId,
       quantity: quantity ?? this.quantity,
       plantName: plantName ?? this.plantName,
+      image: image ?? this.image,
     );
   }
 }
