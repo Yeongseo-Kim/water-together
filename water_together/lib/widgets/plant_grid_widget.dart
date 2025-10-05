@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/water_provider.dart';
+import '../services/plant_config_service.dart';
+import '../models/plant_config.dart';
 
 class PlantGridWidget extends StatefulWidget {
   const PlantGridWidget({super.key});
@@ -8,162 +12,113 @@ class PlantGridWidget extends StatefulWidget {
 }
 
 class _PlantGridWidgetState extends State<PlantGridWidget> {
-  // 임시 식물 데이터 (수집/미수집 구분)
-  final List<PlantData> _plants = [
-    PlantData(
-      id: 'plant_001',
-      name: '기본 식물',
-      image: '🌱',
-      description: '기본적인 식물입니다. 물을 주면 자라요!',
-      isCollected: true,
-      stage: 2,
-    ),
-    PlantData(
-      id: 'plant_002',
-      name: '튤립',
-      image: '🌷',
-      description: '아름다운 튤립입니다. 봄에 피어나요.',
-      isCollected: true,
-      stage: 3,
-    ),
-    PlantData(
-      id: 'plant_003',
-      name: '민들레',
-      image: '🌼',
-      description: '노란 민들레입니다. 바람에 날려가요.',
-      isCollected: true,
-      stage: 1,
-    ),
-    PlantData(
-      id: 'plant_004',
-      name: '장미',
-      image: '🌹',
-      description: '사랑의 꽃 장미입니다.',
-      isCollected: false,
-      stage: 0,
-    ),
-    PlantData(
-      id: 'plant_005',
-      name: '해바라기',
-      image: '🌻',
-      description: '태양을 따라 도는 해바라기입니다.',
-      isCollected: false,
-      stage: 0,
-    ),
-    PlantData(
-      id: 'plant_006',
-      name: '선인장',
-      image: '🌵',
-      description: '사막의 선인장입니다. 물을 적게 마셔요.',
-      isCollected: true,
-      stage: 2,
-    ),
-    PlantData(
-      id: 'plant_007',
-      name: '나무',
-      image: '🌳',
-      description: '큰 나무입니다. 많은 물이 필요해요.',
-      isCollected: false,
-      stage: 0,
-    ),
-    PlantData(
-      id: 'plant_008',
-      name: '버섯',
-      image: '🍄',
-      description: '빨간 버섯입니다. 조심해서 키우세요.',
-      isCollected: false,
-      stage: 0,
-    ),
-    PlantData(
-      id: 'plant_009',
-      name: '클로버',
-      image: '🍀',
-      description: '네잎 클로버입니다. 행운을 가져다줘요.',
-      isCollected: true,
-      stage: 1,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // 식물 설정 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await PlantConfigService.instance.loadPlantConfigs();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 수집된 식물 수 계산
-    final collectedCount = _plants.where((plant) => plant.isCollected).length;
-    final totalCount = _plants.length;
-    final completionRate = totalCount > 0 ? collectedCount / totalCount : 0.0;
+    return Consumer<WaterProvider>(
+      builder: (context, waterProvider, child) {
+        final plantConfigsMap = PlantConfigService.instance.getAllPlantConfigs();
+        final plantConfigs = plantConfigsMap.values.toList();
+        final collectedPlants = _getCollectedPlants(waterProvider);
+        
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 도감 완성도 표시
+              _buildCollectionProgress(plantConfigs.length, collectedPlants.length),
+              const SizedBox(height: 24),
+              
+              // 식물 그리드
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.0,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: plantConfigs.length,
+                  itemBuilder: (context, index) {
+                    final plantConfig = plantConfigs[index];
+                    if (plantConfig == null) return const SizedBox.shrink();
+                    
+                    final isCollected = collectedPlants.contains(plantConfig.plantId);
+                    
+                    return _buildPlantCard(plantConfig, isCollected);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+  // 도감 완성도 표시
+  Widget _buildCollectionProgress(int totalPlants, int collectedPlants) {
+    final progress = totalPlants > 0 ? collectedPlants / totalPlants : 0.0;
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 도감 완성도 표시
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '도감 완성도',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    Text(
-                      '$collectedCount / $totalCount',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                  ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '도감 완성도',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: completionRate,
-                  backgroundColor: Colors.blue.shade100,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
-                  minHeight: 8,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${(completionRate * 100).toInt()}% 완성',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.blue.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // 식물 그리드
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.8,
               ),
-              itemCount: _plants.length,
-              itemBuilder: (context, index) {
-                final plant = _plants[index];
-                return _buildPlantCard(plant);
-              },
+              Text(
+                '$collectedPlants / $totalPlants',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.grey.shade200,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade400),
+            minHeight: 8,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${(progress * 100).toInt()}% 완성',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -171,148 +126,261 @@ class _PlantGridWidgetState extends State<PlantGridWidget> {
     );
   }
 
-  Widget _buildPlantCard(PlantData plant) {
+  // 식물 카드 위젯
+  Widget _buildPlantCard(PlantConfig plantConfig, bool isCollected) {
     return GestureDetector(
-      onTap: plant.isCollected ? () => _showPlantDetail(plant) : null,
+      onTap: () => _showPlantDetail(plantConfig, isCollected),
       child: Container(
         decoration: BoxDecoration(
-          color: plant.isCollected ? Colors.white : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: plant.isCollected ? Colors.green.shade200 : Colors.grey.shade300,
-            width: 2,
-          ),
-          boxShadow: plant.isCollected ? [
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
             BoxShadow(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.grey.withOpacity(0.1),
               spreadRadius: 1,
-              blurRadius: 4,
+              blurRadius: 5,
               offset: const Offset(0, 2),
             ),
-          ] : null,
+          ],
+          border: Border.all(
+            color: isCollected ? Colors.green.shade300 : Colors.grey.shade300,
+            width: 2,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 식물 이미지
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: plant.isCollected ? Colors.green.shade50 : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: plant.isCollected ? Colors.green.shade200 : Colors.grey.shade300,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  plant.isCollected ? plant.image : '?',
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: plant.isCollected ? null : Colors.grey.shade400,
-                  ),
-                ),
-              ),
+            // 식물 이미지 (이모티콘)
+            Text(
+              isCollected ? plantConfig.stageImages[3] : '❓',
+              style: const TextStyle(fontSize: 48),
             ),
             const SizedBox(height: 8),
-
+            
             // 식물 이름
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                plant.isCollected ? plant.name : '???',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: plant.isCollected ? Colors.black87 : Colors.grey.shade500,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            Text(
+              isCollected ? plantConfig.name : '???',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isCollected ? Colors.black : Colors.grey.shade500,
               ),
+              textAlign: TextAlign.center,
             ),
-
-            // 수집 상태 표시
-            if (plant.isCollected) ...[
-              const SizedBox(height: 4),
+            const SizedBox(height: 4),
+            
+            // 희귀도 표시
+            if (isCollected)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade100,
+                  color: _getRarityColor(plantConfig.rarity).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _getRarityColor(plantConfig.rarity),
+                    width: 1,
+                  ),
                 ),
                 child: Text(
-                  'Stage ${plant.stage}',
+                  _getRarityText(plantConfig.rarity),
                   style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _getRarityColor(plantConfig.rarity),
                   ),
                 ),
               ),
-            ] else ...[
-              const SizedBox(height: 4),
+            
+            // 수집 상태 표시
+            if (isCollected)
+              const SizedBox(height: 8),
+            if (isCollected)
               Icon(
-                Icons.lock_outline,
-                size: 16,
-                color: Colors.grey.shade400,
+                Icons.check_circle,
+                color: Colors.green.shade600,
+                size: 20,
               ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  void _showPlantDetail(PlantData plant) {
+  // 희귀도별 색상
+  Color _getRarityColor(String rarity) {
+    switch (rarity) {
+      case 'common':
+        return Colors.green;
+      case 'rare':
+        return Colors.blue;
+      case 'epic':
+        return Colors.purple;
+      case 'legendary':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // 희귀도별 텍스트
+  String _getRarityText(String rarity) {
+    switch (rarity) {
+      case 'common':
+        return '일반';
+      case 'rare':
+        return '희귀';
+      case 'epic':
+        return '영웅';
+      case 'legendary':
+        return '전설';
+      default:
+        return '일반';
+    }
+  }
+
+  // 수집된 식물 목록 가져오기
+  List<String> _getCollectedPlants(WaterProvider waterProvider) {
+    // WaterProvider에서 완성된 식물 목록 가져오기
+    return waterProvider.completedPlants;
+  }
+
+  // 식물 상세 정보 다이얼로그
+  void _showPlantDetail(PlantConfig plantConfig, bool isCollected) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Text(plant.image, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 8),
+            Text(
+              isCollected ? plantConfig.stageImages[3] : '❓',
+              style: const TextStyle(fontSize: 32),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
-                plant.name,
-                style: const TextStyle(fontSize: 18),
+                isCollected ? plantConfig.name : '???',
+                style: const TextStyle(fontSize: 20),
               ),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              plant.description,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.local_florist, color: Colors.green.shade600),
-                  const SizedBox(width: 8),
-                  Text(
-                    '성장 단계: ${plant.stage}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green.shade700,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isCollected) ...[
+                // 식물 설명
+                Text(
+                  plantConfig.description,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                
+                // 성장 단계별 이미지
+                const Text(
+                  '성장 단계',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStageImage(plantConfig.stageImages[0], '씨앗'),
+                    _buildStageImage(plantConfig.stageImages[1], '줄기'),
+                    _buildStageImage(plantConfig.stageImages[2], '꽃'),
+                    _buildStageImage(plantConfig.stageImages[3], '열매'),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // 희귀도 정보
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _getRarityColor(plantConfig.rarity).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _getRarityColor(plantConfig.rarity),
+                      width: 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.star,
+                        color: _getRarityColor(plantConfig.rarity),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '희귀도: ${_getRarityText(plantConfig.rarity)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _getRarityColor(plantConfig.rarity),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // 성장 요구사항
+                const Text(
+                  '성장 요구사항',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...plantConfig.stageRequirements.asMap().entries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Text(plantConfig.stageImages[entry.key + 1]),
+                        const SizedBox(width: 8),
+                        Text('${entry.value}ml'),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else ...[
+                // 미수집 식물
+                const Text(
+                  '아직 수집하지 않은 식물입니다.',
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(
+                        '식물을 완성하면 도감에 추가됩니다!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -323,23 +391,18 @@ class _PlantGridWidgetState extends State<PlantGridWidget> {
       ),
     );
   }
-}
 
-// 식물 데이터 모델
-class PlantData {
-  final String id;
-  final String name;
-  final String image;
-  final String description;
-  final bool isCollected;
-  final int stage;
-
-  PlantData({
-    required this.id,
-    required this.name,
-    required this.image,
-    required this.description,
-    required this.isCollected,
-    required this.stage,
-  });
+  // 성장 단계 이미지 위젯
+  Widget _buildStageImage(String emoji, String label) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
+    );
+  }
 }

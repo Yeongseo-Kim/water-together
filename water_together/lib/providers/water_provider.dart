@@ -42,6 +42,10 @@ class WaterProvider extends ChangeNotifier {
   final List<Friend> _friends = [];
   List<Friend> get friends => _friends;
 
+  // 완성된 식물 목록 (도감용)
+  final List<String> _completedPlants = [];
+  List<String> get completedPlants => _completedPlants;
+
   // 현재 선택된 탭 인덱스
   int _currentTabIndex = 0;
   int get currentTabIndex => _currentTabIndex;
@@ -314,6 +318,9 @@ class WaterProvider extends ChangeNotifier {
       // 인벤토리 데이터 불러오기
       await _loadInventoryData();
 
+      // 완성된 식물 목록 불러오기
+      await _loadCompletedPlants();
+
       notifyListeners();
     } catch (e) {
       print('초기 데이터 로드 실패: $e');
@@ -569,16 +576,36 @@ class WaterProvider extends ChangeNotifier {
   Future<void> _addToCollection() async {
     if (_currentPlant == null) return;
     
-    // 향후 도감 시스템 구현 시 사용할 데이터 구조
-    // final collectionData = {
-    //   'plantId': _currentPlant!.plantId,
-    //   'name': _currentPlant!.name,
-    //   'image': _currentPlant!.imagePath,
-    //   'completedAt': DateTime.now().toIso8601String(),
-    //   'stage': _currentPlant!.stage,
-    // };
-    
-    print('도감에 추가된 식물: ${_currentPlant!.name}');
+    // 중복 방지: 이미 도감에 있는 식물인지 확인
+    if (!_completedPlants.contains(_currentPlant!.plantTypeId)) {
+      _completedPlants.add(_currentPlant!.plantTypeId);
+      
+      // 도감 데이터 저장
+      await _saveCompletedPlants();
+      
+      print('도감에 추가된 식물: ${_currentPlant!.name} (${_currentPlant!.plantTypeId})');
+    } else {
+      print('이미 도감에 있는 식물입니다: ${_currentPlant!.name}');
+    }
+  }
+
+  // 완성된 식물 목록 저장
+  Future<void> _saveCompletedPlants() async {
+    try {
+      await _userDataService.saveCompletedPlants(_completedPlants);
+    } catch (e) {
+      print('완성된 식물 목록 저장 실패: $e');
+    }
+  }
+
+  // 완성된 식물 목록 불러오기
+  Future<void> _loadCompletedPlants() async {
+    try {
+      _completedPlants.clear();
+      _completedPlants.addAll(await _userDataService.loadCompletedPlants());
+    } catch (e) {
+      print('완성된 식물 목록 불러오기 실패: $e');
+    }
   }
 
   // 축하 메시지 표시

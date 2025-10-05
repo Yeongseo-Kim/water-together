@@ -346,10 +346,33 @@ class UserDataService {
       if (data['inventory'] != null) {
         await _storageService.saveInventoryData(data['inventory']);
       }
+      if (data['completedPlants'] != null) {
+        await _storageService.saveCompletedPlants(data['completedPlants']);
+      }
       return true;
     } catch (e) {
       print('데이터 복원 실패: $e');
       return false;
+    }
+  }
+
+  /// 완성된 식물 목록 저장
+  Future<bool> saveCompletedPlants(List<String> completedPlants) async {
+    try {
+      return await _storageService.saveCompletedPlants(completedPlants);
+    } catch (e) {
+      print('완성된 식물 목록 저장 실패: $e');
+      return false;
+    }
+  }
+
+  /// 완성된 식물 목록 불러오기
+  Future<List<String>> loadCompletedPlants() async {
+    try {
+      return await _storageService.loadCompletedPlants();
+    } catch (e) {
+      print('완성된 식물 목록 불러오기 실패: $e');
+      return [];
     }
   }
 }

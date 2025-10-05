@@ -9,6 +9,7 @@ class StorageService {
   static const String _settingsKey = 'app_settings';
   static const String _inventoryKey = 'inventory_data';
   static const String _plantsKey = 'plants_data';
+  static const String _completedPlantsKey = 'completed_plants';
   
   // 싱글톤 패턴
   static final StorageService _instance = StorageService._internal();
@@ -245,6 +246,28 @@ class StorageService {
   Future<bool> hasData(String key) async {
     await initialize();
     return _prefs!.containsKey(key);
+  }
+
+  /// 완성된 식물 목록 저장
+  Future<bool> saveCompletedPlants(List<String> completedPlants) async {
+    await initialize();
+    try {
+      return await _prefs!.setStringList(_completedPlantsKey, completedPlants);
+    } catch (e) {
+      print('완성된 식물 목록 저장 실패: $e');
+      return false;
+    }
+  }
+
+  /// 완성된 식물 목록 불러오기
+  Future<List<String>> loadCompletedPlants() async {
+    await initialize();
+    try {
+      return _prefs!.getStringList(_completedPlantsKey) ?? [];
+    } catch (e) {
+      print('완성된 식물 목록 불러오기 실패: $e');
+      return [];
+    }
   }
 
   /// 저장된 모든 키 목록 반환
